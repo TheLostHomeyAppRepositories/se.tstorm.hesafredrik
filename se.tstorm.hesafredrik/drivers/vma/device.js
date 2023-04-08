@@ -12,7 +12,7 @@ class MyDevice extends Device {
   vmaTimer = null;
   device = null;
 
-  debug = true;
+  debug = false;
 
   /**
    * onInit is called when the device is initialized.
