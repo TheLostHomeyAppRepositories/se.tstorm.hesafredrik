@@ -1,0 +1,21 @@
+{
+    "triggers": [
+        {
+        "id": "vma_trigger",
+        "title": { "en": "New VMA message broadcast", "sv": "Nytt VMA-meddelande" },
+        "tokens": [
+            {
+                "name": "message",
+                "type": "string",
+                "title": { "en": "Message", "sv": "Meddelande" },
+                "example": { "en": "Important message to the public", "sv": "Viktigt meddelande till allmänheten" }
+            },
+            {
+                "name": "test",
+                "type": "boolean",
+                "title": { "en": "Test message", "sv": "Testmeddelande" }
+            }
+            ]
+        }
+    ]
+}

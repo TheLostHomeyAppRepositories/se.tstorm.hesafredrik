@@ -1,0 +1,8 @@
+{
+    "type": "string",
+    "title": "VMA",
+    "getable": true,
+    "setable": false,
+    "uiComponent": "sensor",
+    "icon": "/assets/message.svg" 
+}

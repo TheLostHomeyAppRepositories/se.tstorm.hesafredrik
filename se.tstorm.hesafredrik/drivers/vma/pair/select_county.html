@@ -1,0 +1,23 @@
+<script type="application/javascript">
+  Homey.emit("get_counties", { }).then(function (result) {
+    var select = document.getElementById("select-county");
+    for (var i = 0; i < result.length; i++) {
+      var opt = result[i];
+      var el = document.createElement("option");
+      el.textContent = opt.name;
+      el.value = opt.id;
+      select.appendChild(el);
+    }
+
+    // Emit set_county when the user selects a county in the dropdown
+    select.addEventListener("change", function (event) {
+      Homey.emit("set_county", { id: event.target.value });
+    });
+  });
+</script>
+
+<div class="homey-form-group">
+    <label class="homey-form-label" for="select-county">Select County</label>
+    <select class="homey-form-select" name="select-county" id="select-county">
+    </select>
+</div>
