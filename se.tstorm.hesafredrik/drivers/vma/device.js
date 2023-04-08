@@ -35,7 +35,7 @@ class MyDevice extends Device {
     await this.getAlerts();
     this.vmaTimer = setInterval(async () => {
       await this.getAlerts();
-    }, 60000);
+    }, 29000);
   }
 
   async getAlerts() {
