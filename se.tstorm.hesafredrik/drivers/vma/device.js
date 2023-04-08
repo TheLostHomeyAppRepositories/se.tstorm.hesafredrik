@@ -35,7 +35,7 @@ class MyDevice extends Device {
     await this.getAlerts();
     this.vmaTimer = setInterval(async () => {
       await this.getAlerts();
-    }, 60000);
+    }, 29000);
   }
 
   async getAlerts() {
@@ -62,12 +62,10 @@ class MyDevice extends Device {
             this.log(`Incident ${incidentId} triggered`);
             this.log(alert.info);
 
-            if (this.incidents[incidentId] !== alert.info) {
-              this.incidents[incidentId] = alert.info;
-              await this.setStoreValue('incidents', this.incidents);
-              await this.setCapabilityValue('message', alert.info[0].description);
-              this.driver.triggerVMA(this.device, { message: alert.info[0].description, test: alert.status === 'Test' }, {});
-            }
+            this.incidents[incidentId] = alert.info;
+            await this.setStoreValue('incidents', this.incidents);
+            await this.setCapabilityValue('message', alert.info[0].description);
+            this.driver.triggerVMA(this.device, { message: alert.info[0].description, test: alert.status === 'Test' }, {});
           } else if (alert.msgType === 'Cancel' && this.incidents[incidentId]) {
             this.log(`Incident ${incidentId} cancelled`);
             delete this.incidents[incidentId];
