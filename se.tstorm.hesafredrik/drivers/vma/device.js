@@ -12,8 +12,6 @@ class MyDevice extends Device {
   vmaTimer = null;
   device = null;
 
-  debug = true;
-
   /**
    * onInit is called when the device is initialized.
    */
@@ -39,15 +37,18 @@ class MyDevice extends Device {
   }
 
   async getAlerts() {
+    const settings = this.getSettings();
+    const testMode = await settings.test_mode || false;
+
     try {
       const onoff = await this.getCapabilityValue('onoff');
       if (!onoff) return;
 
       let url = `${this.urlRoot}${this.getData().id}/index.json`;
 
-      if (this.debug) {
-        this.log('Debug mode is on, using test URL');
-        url = `${this.testUrlRoot}index.json`;
+      if (testMode) {
+        this.log('Test mode is enabled, using test URL');
+        url = `${this.testUrlRoot}${this.getData().id}/index.json`;
       }
       this.log(url);
       axios.defaults.headers.common['User-Agent'] = 'Homey Hesa Fredrik (https://apps.athom.com/app/se.tstorm.hesafredrik)';

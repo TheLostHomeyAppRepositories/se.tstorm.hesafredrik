@@ -1,3 +1,5 @@
+# Hesa Fredrik
+
 Stay informed and prepared in the face of emergencies with Hesa Fredrik, a Homey app designed to deliver Swedish VMA (Viktigt Meddelande till Allmänheten) messages directly to your Homey device.
 
 Key Features:
