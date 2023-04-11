@@ -4,5 +4,8 @@
   },
   "1.1.0": {
     "en": "Test mode device setting, for getting test VMA alerts when experimenting with the triggers"
+  },
+  "1.1.1": {
+    "en": "Changed URL for downloading MP3 alarm files in README, added source repo to app.json"
   }
 }
