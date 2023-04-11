@@ -8,4 +8,4 @@ Key Features:
 - Voice Alerts: Hesa Fredrik is compatible with Homey's voice functionality, allowing you to receive audible VMA updates for added convenience and accessibility.
 - Easy Integration: Seamlessly connect Hesa Fredrik with your existing Homey setup, making it a valuable addition to your smart home ecosystem.
 
-If you want your Homey to sound the official VMA alarm when a new VMA messages is recieved, MP3 clips of Hesa Fredrik for use with Homey Soundboard can be downloaded from https://lilla.krisinformation.se/kriskoll/varningssignaler ("Viktigt Meddelande", "Faran Över").
+If you want your Homey to sound the official VMA alarm when a new VMA messages is recieved, MP3 clips of Hesa Fredrik for use with Homey Soundboard can be downloaded from https://github.com/TheodorStorm/homey-hesa-fredrik/tree/main/mp3 ("Viktigt Meddelande", "Faran Över").
