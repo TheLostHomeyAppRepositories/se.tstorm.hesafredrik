@@ -1,5 +1,8 @@
 {
   "1.0.0": {
     "en": "First release"
+  },
+  "1.1.0": {
+    "en": "Test mode device setting, for getting test VMA alerts when experimenting with the triggers"
   }
 }
