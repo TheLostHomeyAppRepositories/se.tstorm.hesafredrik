@@ -15,6 +15,7 @@
   "description": {
     "en": "Stay Alert, Stay Safe: Your Swedish VMA Companion"
   },
+  "source": "https://github.com/TheodorStorm/homey-hesa-fredrik",
   "category": [
     "internet"
   ],
