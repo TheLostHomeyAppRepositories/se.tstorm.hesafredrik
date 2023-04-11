@@ -18,9 +18,6 @@
   "category": [
     "internet"
   ],
-  "permissions": [
-    "homey:manager:speech-output"
-  ],
   "images": {
     "small": "/assets/images/small.jpg",
     "large": "/assets/images/large.jpg",
