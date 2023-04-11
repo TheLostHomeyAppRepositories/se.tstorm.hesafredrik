@@ -21,7 +21,6 @@ class MyDriver extends Driver {
   triggerVMA(device, tokens, state) {
     this._vma_trigger
       .trigger(device, tokens, state)
-      .then(this.log)
       .catch(this.error);
   }
 

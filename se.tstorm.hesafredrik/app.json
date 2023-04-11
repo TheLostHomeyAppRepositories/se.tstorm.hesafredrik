@@ -111,7 +111,18 @@
           "template": "add_devices"
         }
       ],
-      "id": "vma"
+      "id": "vma",
+      "settings": [
+        {
+          "label": {
+            "en": "Test mode",
+            "sv": "Testläge"
+          },
+          "type": "checkbox",
+          "id": "test_mode",
+          "value": false
+        }
+      ]
     }
   ],
   "capabilities": {
