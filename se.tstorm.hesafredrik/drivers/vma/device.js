@@ -36,6 +36,10 @@ class MyDevice extends Device {
     }, 29000);
   }
 
+  /**
+   * getAlerts fetches the latest alerts from the VMA API
+   * @returns {Promise<void>}
+   */
   async getAlerts() {
     const settings = this.getSettings();
     const testMode = await settings.test_mode || false;
