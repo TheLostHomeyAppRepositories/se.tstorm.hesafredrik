@@ -8,7 +8,7 @@ class MyDevice extends Device {
   testUrlRoot = 'https://vmaapi.sr.se/testapi/v2/alerts/';
   urlRoot = 'https://vmaapi.sr.se/api/v2/alerts/';
   incidents = this.getStoreValue('incidents') || [];
-  onoff = this.getStoreValue('onoff') || true;
+  onoff = this.getStoreValue('onoff');
   vmaTimer = null;
   device = null;
 
@@ -17,6 +17,7 @@ class MyDevice extends Device {
    */
   async onInit() {
     this.device = this;
+    if (this.onoff === null) this.onoff = true;
     if (!this.hasCapability('message')) await this.addCapability('message');
 
     this.log('VMA device has been initialized');
@@ -42,11 +43,14 @@ class MyDevice extends Device {
    */
   async getAlerts() {
     const settings = this.getSettings();
-    const testMode = await settings.test_mode || false;
+    const testMode = settings.test_mode || false;
 
     try {
       const onoff = await this.getCapabilityValue('onoff');
-      if (!onoff) return;
+      if (!onoff) {
+        this.log('Device is turned off, not fetching alerts');
+        return;
+      }
 
       let url = `${this.urlRoot}${this.getData().id}/index.json`;
 
