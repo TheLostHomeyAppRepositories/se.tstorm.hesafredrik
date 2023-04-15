@@ -10,5 +10,8 @@
   },
   "1.1.2": {
     "en": "Fixes device onoff initialization bug"
+  },
+  "1.1.3": {
+    "en": "Swedish translations"
   }
 }
