@@ -12,11 +12,12 @@
     "sv": "Hesa Fredrik"
   },
   "description": {
-    "en": "Stay Alert, Stay Safe: Your Swedish VMA Companion"
+    "en": "Stay Alert, Stay Safe: Your Swedish VMA Companion",
+    "sv": "Alltid redo, alltid säker – VMA i ditt smarta hem"
   },
   "source": "https://github.com/TheodorStorm/homey-hesa-fredrik",
   "category": [
-    "internet"
+    "security"
   ],
   "images": {
     "small": "/assets/images/small.jpg",
