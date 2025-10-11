@@ -11,6 +11,47 @@
                 "example": { "en": "Important message to the public", "sv": "Viktigt meddelande till allmänheten" }
             },
             {
+                "name": "description",
+                "type": "string",
+                "title": { "en": "Description", "sv": "Beskrivning" },
+                "example": { "en": "Full alert description", "sv": "Fullständig varningsbeskrivning" }
+            },
+            {
+                "name": "severity",
+                "type": "string",
+                "title": { "en": "Severity", "sv": "Allvarlighetsgrad" },
+                "example": { "en": "Severe", "sv": "Allvarlig" }
+            },
+            {
+                "name": "urgency",
+                "type": "string",
+                "title": { "en": "Urgency", "sv": "Brådskande" },
+                "example": { "en": "Immediate", "sv": "Omedelbar" }
+            },
+            {
+                "name": "event",
+                "type": "string",
+                "title": { "en": "Event type", "sv": "Händelsetyp" },
+                "example": { "en": "Important Public Announcement", "sv": "Viktigt meddelande till allmänheten" }
+            },
+            {
+                "name": "area",
+                "type": "string",
+                "title": { "en": "Area", "sv": "Område" },
+                "example": { "en": "Stockholm County", "sv": "Stockholms län" }
+            },
+            {
+                "name": "status",
+                "type": "string",
+                "title": { "en": "Status", "sv": "Status" },
+                "example": { "en": "Actual", "sv": "Actual" }
+            },
+            {
+                "name": "exercise",
+                "type": "boolean",
+                "title": { "en": "Exercise (siren test)", "sv": "Övning (sirentest)" }
+            },
+            {
                 "name": "test",
                 "type": "boolean",
                 "title": { "en": "Test message", "sv": "Testmeddelande" }

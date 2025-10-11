@@ -16,6 +16,32 @@ class MyDriver extends Driver {
     this.log('VMA driver has been initialized');
 
     this._vma_trigger = this.homey.flow.getDeviceTriggerCard('vma_trigger');
+
+    // Register run listener to validate trigger conditions
+    // Note: This only runs when a flow actually triggers, not during device pairing
+    this._vma_trigger.registerRunListener(async (args, state) => {
+      try {
+        // Validate if device is on before allowing trigger
+        if (args.device) {
+          const onoff = await args.device.getCapabilityValue('onoff');
+          if (!onoff) {
+            this.log('VMA trigger blocked: device is off');
+            return false;
+          }
+        }
+
+        // Validate message exists
+        if (!state || !state.message) {
+          this.log('VMA trigger blocked: no message in state');
+          return false;
+        }
+
+        return true;
+      } catch (error) {
+        this.error('Error in flow run listener:', error);
+        return false;
+      }
+    });
   }
 
   triggerVMA(device, tokens, state) {
@@ -37,7 +63,6 @@ class MyDriver extends Driver {
       const counties = [];
 
       Object.keys(AreaCodes).forEach((code) => {
-        // Get code and name
         const { name } = AreaCodes[code];
         const county = {
           name: `${name}`,

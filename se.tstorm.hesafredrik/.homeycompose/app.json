@@ -27,5 +27,12 @@
   "author": {
     "name": "Theodor Storm",
     "email": "theodor@tstorm.se"
+  },
+  "contributing": {
+    "donate": {
+      "githubSponsors": {
+        "username": "TheodorStorm"
+      }
+    }
   }
 }

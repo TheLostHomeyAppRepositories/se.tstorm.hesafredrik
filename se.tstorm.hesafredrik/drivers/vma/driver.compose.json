@@ -18,7 +18,7 @@
     "xlarge": "{{driverAssetsPath}}/images/xlarge.png"
   },
   "pair": [
-    { 
+    {
       "id": "select_county",
       "navigation": { "next": "list_devices" }
     },

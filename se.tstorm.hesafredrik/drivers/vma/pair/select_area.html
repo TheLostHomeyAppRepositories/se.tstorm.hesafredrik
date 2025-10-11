@@ -1,0 +1,97 @@
+<!-- Simplified HTML first to ensure it loads -->
+<div id="loading">Loading areas...</div>
+<div id="error-message" style="display:none; color: red;"></div>
+
+<div id="main-content" style="display:none;">
+  <h2>Select VMA Alert Area</h2>
+
+  <p>Select the area you want to monitor for VMA emergency alerts.</p>
+
+  <input type="text" id="search" placeholder="Search for municipality..." style="width: 100%; padding: 8px; margin: 10px 0;">
+
+  <div id="county-chips" style="margin: 10px 0;">
+    <!-- Counties will be added here -->
+  </div>
+
+  <div id="area-list" style="height: 300px; overflow-y: auto; border: 1px solid #ccc; padding: 10px;">
+    <!-- Areas will be added here -->
+  </div>
+
+  <div id="selected-area" style="margin: 10px 0; display: none;">
+    <strong>Selected:</strong> <span id="selected-name"></span>
+  </div>
+
+  <button id="add-button" disabled style="margin-top: 10px;">Add Device</button>
+</div>
+
+<script type="application/javascript">
+  // Simple test first
+  console.log('Script starting...');
+
+  // Test if Homey object exists
+  if (typeof Homey === 'undefined') {
+    console.error('Homey object not found!');
+    document.getElementById('loading').style.display = 'none';
+    document.getElementById('error-message').style.display = 'block';
+    document.getElementById('error-message').textContent = 'Homey object not available';
+  } else {
+    console.log('Homey object found, calling get_all_areas...');
+
+    // Call get_all_areas - no parameters needed
+    Homey.emit("get_all_areas").then(function(result) {
+      console.log('Got result:', result);
+
+      // Hide loading, show main content
+      document.getElementById('loading').style.display = 'none';
+      document.getElementById('main-content').style.display = 'block';
+
+      if (!result || result.length === 0) {
+        document.getElementById('area-list').innerHTML = 'No areas available';
+        return;
+      }
+
+      // Store areas
+      window.allAreas = result;
+      window.selectedArea = null;
+
+      // Show all areas in a simple list first
+      var listDiv = document.getElementById('area-list');
+      listDiv.innerHTML = '';
+
+      for (var i = 0; i < result.length; i++) {
+        var area = result[i];
+        // Only show municipalities (4-digit codes)
+        if (area.id.length === 4) {
+          var div = document.createElement('div');
+          div.style.padding = '5px';
+          div.style.cursor = 'pointer';
+          div.textContent = area.name + ' (' + area.id + ')';
+          div.onclick = (function(a) {
+            return function() {
+              window.selectedArea = a;
+              document.getElementById('selected-name').textContent = a.name + ' (' + a.id + ')';
+              document.getElementById('selected-area').style.display = 'block';
+              document.getElementById('add-button').disabled = false;
+            };
+          })(area);
+          listDiv.appendChild(div);
+        }
+      }
+
+      // Setup add button
+      document.getElementById('add-button').onclick = function() {
+        if (window.selectedArea) {
+          Homey.emit('area_selected', window.selectedArea).then(function() {
+            Homey.nextView();
+          });
+        }
+      };
+
+    }).catch(function(error) {
+      console.error('Error:', error);
+      document.getElementById('loading').style.display = 'none';
+      document.getElementById('error-message').style.display = 'block';
+      document.getElementById('error-message').textContent = 'Error loading areas: ' + error;
+    });
+  }
+</script>

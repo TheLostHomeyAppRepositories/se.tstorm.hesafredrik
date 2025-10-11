@@ -19,22 +19,29 @@ const CONFIG = {
 
 class MyDevice extends Device {
 
+  /** @type {Object<string, Object>} Active VMA incidents indexed by ID */
+  incidents = {};
+  /** @type {boolean} Device on/off state */
+  onoff = null;
+  /** @type {EventSource|null} SSE connection for real-time updates */
+  eventSource = null;
+  /** @type {number} Current retry attempt count */
+  retryCount = 0;
+  /** @type {Date|null} Timestamp of last successful API poll */
+  lastSuccessfulPoll = null;
+  /** @type {boolean} Whether API is in error state */
+  apiErrorState = false;
+  /** @type {Array<NodeJS.Timeout>} Track retry timers for cleanup */
+  retryTimers = [];
+  /** @type {NodeJS.Timeout|null} SSE reconnection timer */
+  reconnectTimer = null;
+
   /**
    * onInit is called when the device is initialized.
    */
   async onInit() {
     try {
       this.log('=== VMA onInit starting ===');
-
-      // Initialize instance properties
-      this.incidents = {};
-      this.onoff = null;
-      this.eventSource = null;
-      this.retryCount = 0;
-      this.lastSuccessfulPoll = null;
-      this.apiErrorState = false;
-      this.retryTimers = [];
-      this.reconnectTimer = null;
 
       // Migrate incidents from array to object if needed
       this.log('Migrating incidents data...');
