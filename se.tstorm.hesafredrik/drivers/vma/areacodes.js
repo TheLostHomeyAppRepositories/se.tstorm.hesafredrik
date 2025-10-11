@@ -3,6 +3,9 @@
 'use strict';
 
 const codes = {
+  '00': {
+    'name': 'Sverige (alla varningar)',
+  },
   '01': {
     'name': 'Stockholms län',
     '0114': 'Upplands Väsby',

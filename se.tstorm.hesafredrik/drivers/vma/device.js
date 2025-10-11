@@ -1,21 +1,6 @@
 'use strict';
 
 const { Device } = require('homey');
-const axios = require('axios');
-const { EventSource } = require('eventsource');
-
-// Configuration constants
-const CONFIG = {
-  API_URL: 'https://vmaapi.sr.se/api/v3/alerts',
-  TEST_API_URL: 'https://vmaapi.sr.se/testapi/v3/alerts',
-  SSE_URL: 'https://vmaapi.sr.se/api/v3/subscribe',
-  TEST_SSE_URL: 'https://vmaapi.sr.se/testapi/v3/subscribe',
-  REQUEST_TIMEOUT: 10000,
-  MAX_RETRIES: 3,
-  BACKOFF_MULTIPLIER: 2,
-  MAX_BACKOFF_DELAY: 60000,
-  SSE_RECONNECT_DELAY: 5000,
-};
 
 class MyDevice extends Device {
 
@@ -29,12 +14,6 @@ class MyDevice extends Device {
       // Initialize instance properties
       this.incidents = {};
       this.onoff = null;
-      this.eventSource = null;
-      this.retryCount = 0;
-      this.lastSuccessfulPoll = null;
-      this.apiErrorState = false;
-      this.retryTimers = [];
-      this.reconnectTimer = null;
 
       // Migrate incidents from array to object if needed
       this.log('Migrating incidents data...');
@@ -65,18 +44,15 @@ class MyDevice extends Device {
         this.onoff = value;
         await this.setStoreValue('onoff', value);
 
-        // Manage SSE connection based on device state
-        if (value && !this.eventSource) {
-          this.log('Device turned on, establishing SSE connection');
-          this.setupSSE();
-        } else if (!value && this.eventSource) {
-          this.log('Device turned off, closing SSE connection');
-          this.eventSource.close();
-          this.eventSource = null;
-          if (this.reconnectTimer) {
-            clearTimeout(this.reconnectTimer);
-            this.reconnectTimer = null;
-          }
+        // Request an immediate update from the app when device is turned on
+        if (value) {
+          this.log('Device turned on, requesting alerts update...');
+          // Trigger app to fetch and distribute alerts
+          setTimeout(() => {
+            this.homey.app.fetchAndDistributeAlerts().catch((err) => {
+              this.error('Failed to fetch alerts on device enable:', err);
+            });
+          }, 100);
         }
       });
 
@@ -85,23 +61,6 @@ class MyDevice extends Device {
       await this.setCapabilityValue('onoff', this.onoff);
 
       this.log('=== VMA onInit completed successfully ===');
-
-      // Schedule initial fetch after device init completes
-      // Don't block initialization with network requests
-      setTimeout(() => {
-        this.log('Performing initial fetch...');
-        this.getAlerts().catch(err => {
-          this.error('Initial getAlerts failed:', err);
-        });
-
-        // Set up SSE connection for real-time updates if device is on
-        if (this.onoff) {
-          this.log('Setting up SSE connection for real-time alerts...');
-          this.setupSSE();
-        } else {
-          this.log('Device is off, skipping SSE setup');
-        }
-      }, 1000);
     } catch (error) {
       this.error('=== FATAL ERROR in onInit ===');
       this.error('Error:', error);
@@ -111,157 +70,29 @@ class MyDevice extends Device {
   }
 
   /**
-   * Set up Server-Sent Events connection for real-time updates
-   */
-  setupSSE() {
-    // Clean up any existing connection
-    if (this.eventSource) {
-      this.log('Closing existing SSE connection');
-      this.eventSource.close();
-      this.eventSource = null;
-    }
-
-    // Clear any reconnection timer
-    if (this.reconnectTimer) {
-      clearTimeout(this.reconnectTimer);
-      this.reconnectTimer = null;
-    }
-
-    const settings = this.getSettings();
-    const testMode = settings.test_mode || false;
-    const sseUrl = testMode ? CONFIG.TEST_SSE_URL : CONFIG.SSE_URL;
-
-    this.log(`Connecting to SSE endpoint: ${sseUrl}`);
-    this.log(`Test mode: ${testMode}`);
-
-    try {
-      this.eventSource = new EventSource(sseUrl, {
-        headers: {
-          'User-Agent': 'Homey Hesa Fredrik (https://apps.athom.com/app/se.tstorm.hesafredrik)',
-          'Accept': 'text/event-stream',
-        },
-      });
-
-      this.eventSource.onopen = () => {
-        this.log('SSE connection opened successfully');
-        this.retryCount = 0;
-        this.apiErrorState = false;
-      };
-
-      this.eventSource.onmessage = async (event) => {
-        this.log('SSE message received:', event.data);
-
-        try {
-          const data = JSON.parse(event.data);
-          this.log('SSE update notification:', data);
-
-          // When we receive an update notification, fetch the latest alerts
-          this.log('Fetching updated alerts after SSE notification...');
-          await this.getAlerts();
-        } catch (error) {
-          this.error('Failed to parse SSE message:', error);
-        }
-      };
-
-      this.eventSource.onerror = (error) => {
-        this.error('SSE connection error:', error);
-
-        // EventSource will auto-reconnect, but we'll add our own logic for robustness
-        if (this.eventSource.readyState === EventSource.CLOSED) {
-          this.log('SSE connection closed, scheduling reconnection...');
-          this.scheduleReconnection();
-        }
-      };
-
-    } catch (error) {
-      this.error('Failed to setup SSE connection:', error);
-      this.scheduleReconnection();
-    }
-  }
-
-  /**
-   * Schedule SSE reconnection with exponential backoff
-   */
-  scheduleReconnection() {
-    if (this.reconnectTimer) {
-      return; // Already scheduled
-    }
-
-    this.retryCount++;
-    const delay = Math.min(
-      CONFIG.SSE_RECONNECT_DELAY * Math.pow(2, this.retryCount - 1),
-      CONFIG.MAX_BACKOFF_DELAY
-    );
-
-    this.log(`Scheduling SSE reconnection in ${delay}ms (attempt ${this.retryCount})`);
-
-    this.reconnectTimer = setTimeout(() => {
-      this.reconnectTimer = null;
-      this.setupSSE();
-    }, delay);
-  }
-
-  /**
-   * getAlerts fetches the latest alerts from the VMA API
+   * Process alerts received from the app
+   * @param {Array} alerts - Array of alert objects filtered for this device's area
    * @returns {Promise<void>}
    */
-  async getAlerts() {
+  async processAlerts(alerts) {
     const settings = this.getSettings();
     const testMode = settings.test_mode || false;
 
-    this.log('=== getAlerts called ===');
-    this.log('Settings:', JSON.stringify(settings));
-    this.log('Test mode:', testMode);
+    this.log('=== processAlerts called ===');
+    this.log('Number of alerts:', alerts.length);
 
     try {
       const onoff = await this.getCapabilityValue('onoff');
-      this.log('Device onoff state:', onoff);
 
       if (!onoff) {
-        this.log('Device is turned off, not fetching alerts');
+        this.log('Device is turned off, not processing alerts');
         return;
       }
 
-      const areaCode = this.getData().id;
-      this.log('Area code:', areaCode);
-
-      // Validate area code format (2-digit county or 4-digit municipality)
-      if (!/^\d{2}$/.test(areaCode) && !/^\d{4}$/.test(areaCode)) {
-        this.error(`Invalid area code format: ${areaCode}`);
-        return;
-      }
-
-      const baseUrl = testMode ? CONFIG.TEST_API_URL : CONFIG.API_URL;
-
-      this.log('API Base URL:', baseUrl);
-      this.log('Area code (geocode):', areaCode);
-      this.log('Test mode enabled:', testMode);
-
-      this.log('Making API request...');
-      const response = await axios.get(baseUrl, {
-        params: {
-          geocode: areaCode,
-        },
-        timeout: CONFIG.REQUEST_TIMEOUT,
-        headers: {
-          'User-Agent': 'Homey Hesa Fredrik (https://apps.athom.com/app/se.tstorm.hesafredrik)',
-          'Accept': 'application/json',
-        },
-      });
-
-      this.log('Full request URL:', response.config.url);
-
-      this.log('Response status:', response.status);
-      this.log('Response headers:', JSON.stringify(response.headers));
-
-      const json = response.data;
-      this.log('Response data:', JSON.stringify(json));
-      this.log('Number of alerts:', json.alerts ? json.alerts.length : 0);
-
-      if (json.alerts) {
+      if (alerts.length > 0) {
         this.log('Processing alerts array...');
         // Use for...of instead of forEach to properly handle async operations
-        for (const alert of json.alerts) {
+        for (const alert of alerts) {
           const incidentId = alert.incidents;
           // Log full alert details for debugging
           this.log('Processing alert:', JSON.stringify(alert));
@@ -273,7 +104,7 @@ class MyDevice extends Device {
           // "Exercise" = quarterly siren tests (show with indicator)
           // "Test" = system tests (only show if test_mode is enabled)
           if (alert.status === 'Test' && !testMode) {
-            this.log('Skipping Test alert in production mode');
+            this.error('WARNING: Received Test alert in production mode - app filtering failed');
             continue;
           }
 
@@ -300,7 +131,7 @@ class MyDevice extends Device {
 
               // Trigger with more detailed tokens for flows
               const tokens = {
-                message: message,
+                message,
                 description: alertInfo.description,
                 severity: alertInfo.severity,
                 urgency: alertInfo.urgency,
@@ -308,7 +139,7 @@ class MyDevice extends Device {
                 area: alertInfo.areaDesc || alertInfo.area?.[0]?.areaDesc || '',
                 status: alert.status,
                 exercise: alert.status === 'Exercise',
-                test: alert.status === 'Test'
+                test: alert.status === 'Test',
               };
 
               this.driver.triggerVMA(this, tokens, {});
@@ -317,6 +148,22 @@ class MyDevice extends Device {
             }
           } else if (alert.msgType === 'Cancel' && this.incidents[incidentId]) {
             this.log(`Incident ${incidentId} cancelled`);
+
+            // Get the stored incident data before deleting
+            const cancelledIncident = this.incidents[incidentId];
+            const alertInfo = this.getBestLanguageInfo(cancelledIncident.info);
+
+            // Trigger cancellation flow
+            if (alertInfo) {
+              const cancelTokens = {
+                message: this.formatAlertMessage(alertInfo, cancelledIncident.status),
+                area: alertInfo.areaDesc || alertInfo.area?.[0]?.areaDesc || '',
+                incident_id: incidentId,
+              };
+              this.driver.triggerVMACancel(this, cancelTokens, {});
+            }
+
+            // Remove the incident from storage
             delete this.incidents[incidentId];
             await this.setStoreValue('incidents', this.incidents);
           }
@@ -337,41 +184,12 @@ class MyDevice extends Device {
         }
       }
 
-      // Reset retry count and error state on successful fetch
-      this.retryCount = 0;
-      this.apiErrorState = false;
-      this.lastSuccessfulPoll = new Date();
-      this.log('=== getAlerts completed successfully ===');
+      this.log('=== processAlerts completed successfully ===');
 
     } catch (error) {
-      this.error('=== VMA API error ===');
+      this.error('=== Error processing alerts ===');
       this.error('Error message:', error.message);
-      this.error('Error code:', error.code);
-      if (error.response) {
-        this.error('Response status:', error.response.status);
-        this.error('Response data:', JSON.stringify(error.response.data));
-      }
-      this.error('Full error:', JSON.stringify(error, Object.getOwnPropertyNames(error)));
-
-      // Handle different error types
-      if (error.response) {
-        // Server responded with error
-        if (error.response.status === 429) {
-          // Rate limiting - back off and retry
-          this.error('Rate limited by API');
-          this.handleRetry();
-        } else if (error.response.status >= 500) {
-          // Server error - retry with backoff
-          this.handleRetry();
-        }
-      } else if (error.code === 'ECONNABORTED' || error.code === 'ETIMEDOUT') {
-        // Timeout error
-        this.error('Request timeout - will retry');
-        this.handleRetry();
-      } else {
-        // Network or other error
-        this.handleRetry();
-      }
+      this.error('Error:', error);
     }
   }
 
@@ -389,11 +207,11 @@ class MyDevice extends Device {
     const homeyLanguage = this.homey.i18n?.getLanguage?.() || 'sv';
 
     // Try to find exact language match
-    let info = infoArray.find(i => i.language?.toLowerCase().startsWith(homeyLanguage.toLowerCase()));
+    let info = infoArray.find((i) => i.language?.toLowerCase().startsWith(homeyLanguage.toLowerCase()));
 
     // Fallback to Swedish if no match (since this is a Swedish emergency system)
     if (!info) {
-      info = infoArray.find(i => i.language?.toLowerCase().startsWith('sv'));
+      info = infoArray.find((i) => i.language?.toLowerCase().startsWith('sv'));
     }
 
     // Final fallback to first available
@@ -411,29 +229,8 @@ class MyDevice extends Device {
    * @returns {string} Formatted message
    */
   formatAlertMessage(alertInfo, status) {
-    let message = '';
-
-    // Add status indicator for exercises and tests
-    if (status === 'Exercise') {
-      message = '📢 [ÖVNING/EXERCISE] ';
-    } else if (status === 'Test') {
-      message = '🧪 [TEST] ';
-    }
-
-    // Add severity indicator if critical
-    if (alertInfo.severity === 'Extreme' || alertInfo.severity === 'Severe') {
-      message += '🚨 ';
-    }
-
-    // Add the main description
-    message += alertInfo.description || alertInfo.event || 'VMA Alert';
-
-    // Add area if not already in description
-    if (alertInfo.area?.[0]?.areaDesc && !alertInfo.description?.includes(alertInfo.area[0].areaDesc)) {
-      message += ` - ${alertInfo.area[0].areaDesc}`;
-    }
-
-    return message;
+    // Return plain description - users can use flow tokens for additional formatting
+    return alertInfo.description || alertInfo.event || 'VMA Alert';
   }
 
   /**
@@ -470,65 +267,6 @@ class MyDevice extends Device {
   }
 
   /**
-   * Handle retry logic with exponential backoff
-   */
-  async handleRetry() {
-    this.retryCount++;
-
-    if (this.retryCount <= CONFIG.MAX_RETRIES) {
-      const backoffDelay = Math.min(
-        CONFIG.REQUEST_TIMEOUT * (CONFIG.BACKOFF_MULTIPLIER ** this.retryCount),
-        CONFIG.MAX_BACKOFF_DELAY,
-      );
-
-      this.log(`Retrying in ${backoffDelay}ms (attempt ${this.retryCount}/${CONFIG.MAX_RETRIES})`);
-
-      const timerId = setTimeout(async () => {
-        await this.getAlerts();
-        // Remove this timer from the array after execution
-        const index = this.retryTimers.indexOf(timerId);
-        if (index > -1) {
-          this.retryTimers.splice(index, 1);
-        }
-      }, backoffDelay);
-
-      this.retryTimers.push(timerId);
-    } else {
-      // Max retries exceeded - set error state
-      this.error('Max retries exceeded - VMA alerts may be unavailable');
-      this.apiErrorState = true;
-      this.retryCount = 0;
-
-      // Only show error message if no active incidents
-      if (Object.keys(this.incidents).length === 0) {
-        try {
-          await this.setCapabilityValue('message', 'API connection error - check logs');
-        } catch (err) {
-          this.error(`Failed to set error message: ${err.message}`);
-        }
-      }
-
-      // Log detailed error information for debugging
-      if (this.lastSuccessfulPoll) {
-        const downtime = Date.now() - this.lastSuccessfulPoll.getTime();
-        this.error(`VMA API has been unreachable for ${Math.round(downtime / 60000)} minutes`);
-        this.error('Please check network connection and API status');
-      } else {
-        this.error('VMA API has never been successfully reached');
-      }
-
-      // Don't set alarm_generic to true for API errors - only for actual VMA alerts
-      // Keep existing alarm state (true if there are active incidents, false otherwise)
-      try {
-        await this.setCapabilityValue('alarm_generic', Object.keys(this.incidents).length > 0);
-      } catch (err) {
-        this.error(`Failed to set alarm_generic capability: ${err.message}`);
-      }
-    }
-  }
-
-
-  /**
    * onAdded is called when the user adds the device, called just after pairing.
    */
   async onAdded() {
@@ -536,6 +274,16 @@ class MyDevice extends Device {
     this.log('Device name:', this.getName());
     this.log('Device data:', this.getData());
     this.log('VMA device has been added successfully');
+
+    // Reconfigure SSE connections since a new device may change endpoint needs
+    this.log('Reconfiguring SSE connections after device added...');
+    this.homey.app.setupSSEConnections();
+
+    // Trigger immediate fetch to get alerts for this new device
+    this.log('Triggering immediate fetch for new device...');
+    await this.homey.app.fetchAndDistributeAlerts().catch((err) => {
+      this.error('Failed to fetch alerts for new device:', err);
+    });
   }
 
   /**
@@ -552,18 +300,18 @@ class MyDevice extends Device {
     this.log('New settings:', JSON.stringify(newSettings));
     this.log('Changed keys:', changedKeys);
 
-    // If test_mode was changed, log it specifically
+    // If test_mode was changed, trigger app to reconnect SSE connections
     if (changedKeys.includes('test_mode')) {
       this.log(`Test mode changed from ${oldSettings.test_mode} to ${newSettings.test_mode}`);
-      this.log('Next API calls will use:', newSettings.test_mode ? 'TEST API' : 'PRODUCTION API');
+      this.log('Device will now use:', newSettings.test_mode ? 'TEST API' : 'PRODUCTION API');
 
-      // Reconnect SSE to the appropriate endpoint
-      this.log('Reconnecting SSE after test_mode change...');
-      this.setupSSE();
+      // Reconfigure SSE connections based on new device settings
+      this.log('Reconfiguring SSE connections after test_mode change...');
+      this.homey.app.setupSSEConnections();
 
       // Force an immediate fetch to test the new setting
       this.log('Forcing immediate fetch after test_mode change...');
-      await this.getAlerts();
+      await this.homey.app.fetchAndDistributeAlerts();
     }
   }
 
@@ -582,22 +330,8 @@ class MyDevice extends Device {
   async onDeleted() {
     this.log('VMA has been deleted');
 
-    // Close SSE connection
-    if (this.eventSource) {
-      this.log('Closing SSE connection');
-      this.eventSource.close();
-      this.eventSource = null;
-    }
-
-    // Clear reconnection timer
-    if (this.reconnectTimer) {
-      clearTimeout(this.reconnectTimer);
-      this.reconnectTimer = null;
-    }
-
-    // Clear all retry timers
-    this.retryTimers.forEach((timerId) => clearTimeout(timerId));
-    this.retryTimers = [];
+    // Trigger SSE reconfiguration since device needs may have changed
+    this.homey.app.setupSSEConnections();
   }
 
 }

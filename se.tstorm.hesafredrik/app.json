@@ -153,6 +153,58 @@
             "filter": "driver_id=vma"
           }
         ]
+      },
+      {
+        "id": "vma_cancel_trigger",
+        "title": {
+          "en": "VMA alert ended",
+          "sv": "VMA-varning avslutad"
+        },
+        "tokens": [
+          {
+            "name": "message",
+            "type": "string",
+            "title": {
+              "en": "Original message",
+              "sv": "Ursprungligt meddelande"
+            },
+            "example": {
+              "en": "Important message to the public",
+              "sv": "Viktigt meddelande till allmänheten"
+            }
+          },
+          {
+            "name": "area",
+            "type": "string",
+            "title": {
+              "en": "Area",
+              "sv": "Område"
+            },
+            "example": {
+              "en": "Stockholm County",
+              "sv": "Stockholms län"
+            }
+          },
+          {
+            "name": "incident_id",
+            "type": "string",
+            "title": {
+              "en": "Incident ID",
+              "sv": "Incident-ID"
+            },
+            "example": {
+              "en": "urn:newsml:sr.se:vma:2024:123456",
+              "sv": "urn:newsml:sr.se:vma:2024:123456"
+            }
+          }
+        ],
+        "args": [
+          {
+            "type": "device",
+            "name": "device",
+            "filter": "driver_id=vma"
+          }
+        ]
       }
     ]
   },
