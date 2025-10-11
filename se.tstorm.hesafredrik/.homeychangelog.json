@@ -1,0 +1,17 @@
+{
+  "1.0.0": {
+    "en": "First release"
+  },
+  "1.1.0": {
+    "en": "Test mode device setting, for getting test VMA alerts when experimenting with the triggers"
+  },
+  "1.1.1": {
+    "en": "Changed URL for downloading MP3 alarm files in README, added source repo to app.json"
+  },
+  "1.1.2": {
+    "en": "Fixes device onoff initialization bug"
+  },
+  "1.1.3": {
+    "en": "Swedish translations"
+  }
+}
