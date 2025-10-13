@@ -305,6 +305,20 @@ class MyDevice extends Device {
       this.log(`Test mode changed from ${oldSettings.test_mode} to ${newSettings.test_mode}`);
       this.log('Device will now use:', newSettings.test_mode ? 'TEST API' : 'PRODUCTION API');
 
+      // Clear current incidents when switching modes
+      this.log('Clearing incidents due to test_mode change...');
+      this.incidents = {};
+      await this.setStoreValue('incidents', this.incidents);
+
+      // Update capability values to reflect cleared state
+      try {
+        await this.setCapabilityValue('alarm_generic', false);
+        await this.setCapabilityValue('message', null);
+        this.log('Capabilities cleared successfully');
+      } catch (err) {
+        this.error('Failed to clear capabilities:', err);
+      }
+
       // Reconfigure SSE connections based on new device settings
       this.log('Reconfiguring SSE connections after test_mode change...');
       this.homey.app.setupSSEConnections();

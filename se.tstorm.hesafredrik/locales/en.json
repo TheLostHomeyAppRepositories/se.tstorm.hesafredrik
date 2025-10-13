@@ -1,1 +1,19 @@
-{}
+{
+  "pair": {
+    "select_county": {
+      "title": "Select County",
+      "placeholder": "Choose a county..."
+    },
+    "select_area": {
+      "loading": "Loading areas...",
+      "title": "Select VMA Alert Area",
+      "description": "Select the area you want to monitor for VMA emergency alerts.",
+      "search_placeholder": "Search for municipality...",
+      "selected": "Selected:",
+      "add_button": "Add Device",
+      "no_areas": "No areas available",
+      "error_loading": "Error loading areas:",
+      "homey_not_available": "Homey object not available"
+    }
+  }
+}

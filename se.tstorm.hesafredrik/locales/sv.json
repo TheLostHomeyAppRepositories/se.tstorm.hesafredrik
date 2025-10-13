@@ -1,0 +1,19 @@
+{
+  "pair": {
+    "select_county": {
+      "title": "Välj län",
+      "placeholder": "Välj ett län..."
+    },
+    "select_area": {
+      "loading": "Laddar områden...",
+      "title": "Välj VMA-varningsområde",
+      "description": "Välj det område du vill övervaka för VMA-nödmeddelanden.",
+      "search_placeholder": "Sök efter kommun...",
+      "selected": "Vald:",
+      "add_button": "Lägg till enhet",
+      "no_areas": "Inga områden tillgängliga",
+      "error_loading": "Fel vid laddning av områden:",
+      "homey_not_available": "Homey-objekt inte tillgängligt"
+    }
+  }
+}

@@ -6,7 +6,7 @@
 
     // Add default placeholder option
     var placeholder = document.createElement("option");
-    placeholder.textContent = "Välj ett län...";
+    placeholder.textContent = Homey.__("pair.select_county.placeholder");
     placeholder.value = "";
     placeholder.disabled = true;
     placeholder.selected = true;
@@ -43,7 +43,12 @@
 </script>
 
 <div class="homey-form-group">
-    <label class="homey-form-label" for="select-county">Välj län</label>
+    <label class="homey-form-label" for="select-county" id="county-label"></label>
     <select class="homey-form-select" name="select-county" id="select-county">
     </select>
 </div>
+
+<script type="application/javascript">
+  // Set translated label text
+  document.getElementById("county-label").textContent = Homey.__("pair.select_county.title");
+</script>

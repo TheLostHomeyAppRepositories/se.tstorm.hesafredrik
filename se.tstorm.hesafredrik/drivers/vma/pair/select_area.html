@@ -1,13 +1,13 @@
 <!-- Simplified HTML first to ensure it loads -->
-<div id="loading">Loading areas...</div>
+<div id="loading"></div>
 <div id="error-message" style="display:none; color: red;"></div>
 
 <div id="main-content" style="display:none;">
-  <h2>Select VMA Alert Area</h2>
+  <h2 id="title"></h2>
 
-  <p>Select the area you want to monitor for VMA emergency alerts.</p>
+  <p id="description"></p>
 
-  <input type="text" id="search" placeholder="Search for municipality..." style="width: 100%; padding: 8px; margin: 10px 0;">
+  <input type="text" id="search" placeholder="" style="width: 100%; padding: 8px; margin: 10px 0;">
 
   <div id="county-chips" style="margin: 10px 0;">
     <!-- Counties will be added here -->
@@ -18,22 +18,30 @@
   </div>
 
   <div id="selected-area" style="margin: 10px 0; display: none;">
-    <strong>Selected:</strong> <span id="selected-name"></span>
+    <strong id="selected-label"></strong> <span id="selected-name"></span>
   </div>
 
-  <button id="add-button" disabled style="margin-top: 10px;">Add Device</button>
+  <button id="add-button" disabled style="margin-top: 10px;"></button>
 </div>
 
 <script type="application/javascript">
   // Simple test first
   console.log('Script starting...');
 
+  // Initialize translated text
+  document.getElementById('loading').textContent = Homey.__("pair.select_area.loading");
+  document.getElementById('title').textContent = Homey.__("pair.select_area.title");
+  document.getElementById('description').textContent = Homey.__("pair.select_area.description");
+  document.getElementById('search').placeholder = Homey.__("pair.select_area.search_placeholder");
+  document.getElementById('selected-label').textContent = Homey.__("pair.select_area.selected");
+  document.getElementById('add-button').textContent = Homey.__("pair.select_area.add_button");
+
   // Test if Homey object exists
   if (typeof Homey === 'undefined') {
     console.error('Homey object not found!');
     document.getElementById('loading').style.display = 'none';
     document.getElementById('error-message').style.display = 'block';
-    document.getElementById('error-message').textContent = 'Homey object not available';
+    document.getElementById('error-message').textContent = Homey.__("pair.select_area.homey_not_available");
   } else {
     console.log('Homey object found, calling get_all_areas...');
 
@@ -46,7 +54,7 @@
       document.getElementById('main-content').style.display = 'block';
 
       if (!result || result.length === 0) {
-        document.getElementById('area-list').innerHTML = 'No areas available';
+        document.getElementById('area-list').innerHTML = Homey.__("pair.select_area.no_areas");
         return;
       }
 
@@ -91,7 +99,7 @@
       console.error('Error:', error);
       document.getElementById('loading').style.display = 'none';
       document.getElementById('error-message').style.display = 'block';
-      document.getElementById('error-message').textContent = 'Error loading areas: ' + error;
+      document.getElementById('error-message').textContent = Homey.__("pair.select_area.error_loading") + ' ' + error;
     });
   }
 </script>
