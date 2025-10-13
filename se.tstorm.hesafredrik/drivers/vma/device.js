@@ -93,6 +93,9 @@ class MyDevice extends Device {
         this.log('Processing alerts array...');
         // Use for...of instead of forEach to properly handle async operations
         for (const alert of alerts) {
+          // Note: alert.incidents may contain space-separated IDs per API spec,
+          // but we treat as a single tracking key. This matches the VMA API pattern
+          // where multiple IDs are rare, and aligns with Homey's string-based flow pattern.
           const incidentId = alert.incidents;
           // Log full alert details for debugging
           this.log('Processing alert:', JSON.stringify(alert));
@@ -140,6 +143,7 @@ class MyDevice extends Device {
                 status: alert.status,
                 exercise: alert.status === 'Exercise',
                 test: alert.status === 'Test',
+                incident_id: incidentId,
               };
 
               this.driver.triggerVMA(this, tokens, {});

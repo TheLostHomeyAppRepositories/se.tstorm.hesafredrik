@@ -55,6 +55,12 @@
                 "name": "test",
                 "type": "boolean",
                 "title": { "en": "Test message", "sv": "Testmeddelande" }
+            },
+            {
+                "name": "incident_id",
+                "type": "string",
+                "title": { "en": "Incident ID(s)", "sv": "Incident-ID(n)" },
+                "example": { "en": "SRVMA20240429172709I", "sv": "SRVMA20240429172709I" }
             }
             ]
         },
@@ -77,8 +83,8 @@
             {
                 "name": "incident_id",
                 "type": "string",
-                "title": { "en": "Incident ID", "sv": "Incident-ID" },
-                "example": { "en": "urn:newsml:sr.se:vma:2024:123456", "sv": "urn:newsml:sr.se:vma:2024:123456" }
+                "title": { "en": "Incident ID(s)", "sv": "Incident-ID(n)" },
+                "example": { "en": "SRVMA20240429172709I", "sv": "SRVMA20240429172709I" }
             }
             ]
         }

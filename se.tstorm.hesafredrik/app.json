@@ -144,6 +144,18 @@
               "en": "Test message",
               "sv": "Testmeddelande"
             }
+          },
+          {
+            "name": "incident_id",
+            "type": "string",
+            "title": {
+              "en": "Incident ID(s)",
+              "sv": "Incident-ID(n)"
+            },
+            "example": {
+              "en": "SRVMA20240429172709I",
+              "sv": "SRVMA20240429172709I"
+            }
           }
         ],
         "args": [
@@ -189,12 +201,12 @@
             "name": "incident_id",
             "type": "string",
             "title": {
-              "en": "Incident ID",
-              "sv": "Incident-ID"
+              "en": "Incident ID(s)",
+              "sv": "Incident-ID(n)"
             },
             "example": {
-              "en": "urn:newsml:sr.se:vma:2024:123456",
-              "sv": "urn:newsml:sr.se:vma:2024:123456"
+              "en": "SRVMA20240429172709I",
+              "sv": "SRVMA20240429172709I"
             }
           }
         ],
