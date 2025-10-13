@@ -16,5 +16,8 @@
   },
   "2.0.0": {
     "en": "Updated to API version 3, added VMA cancelled card, bug fixes and performance improvements"
+  },
+  "2.1.0": {
+    "en": "Added incident ID token to flow cards for tracking and correlating VMA alerts"
   }
 }
